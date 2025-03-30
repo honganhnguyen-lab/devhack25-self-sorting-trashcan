@@ -1,1 +1,1 @@
-# devhack25-self-sorting-trashcan
+# Devhack25-self-sorting-trashcan
