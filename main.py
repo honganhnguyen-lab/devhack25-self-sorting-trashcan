@@ -1,61 +1,47 @@
-import socket
 import threading
 import time
+import socket
 from queue import Queue
 import cv2
+import sys
 import keyboard
 from USBCamera import USBCamera
 from ONNXClassifier import ONNXClassifier
 
-HOST = "192.168.12.98" 
+# Server 配置
+HOST = "192.168.12.98"  # 與你的client檔案一致
 PORT = 65432
 
-class CameraClient:
+class MainApplication:
     def __init__(self):
+        # 初始化相機
         self.camera = USBCamera(camera_index=2)
         self.running = False
         
-        self.class_mapping = {0: "bottle", 1: "glass_bottle", 2: "iron", 3: "paper"}
-
-        self.classifier = ONNXClassifier("model.onnx", self.class_mapping)
+        # 初始化ONNX模型
+        class_mapping = {0: "bottle", 1: "glass_bottle", 2: "iron", 3: "paper"}
+        self.classifier = ONNXClassifier("model.onnx", class_mapping)
         
+        # Socket客戶端
         self.socket = None
+        self.connect_to_server()
         
+        # 用於保存圖片的隊列
         self.save_queue = Queue()
-
-    def receive_messages(self, sock):
-        try:
-            while self.running:
-                data = sock.recv(1024)
-                if not data:
-                    print("Server disconnected")
-                    break
-                print(f"\nServer: {data.decode('utf-8')}")
-        except Exception as e:
-            print(f"Error receiving: {e}")
-        finally:
-            sock.close()
-            print("Connection closed")
-
+        
     def connect_to_server(self):
+        """連接到server"""
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print(f"Connecting to {HOST}:{PORT}...")
             self.socket.connect((HOST, PORT))
             print("Connected to server")
-            
-            receive_thread = threading.Thread(target=self.receive_messages, args=(self.socket,))
-            receive_thread.daemon = True
-            receive_thread.start()
-            return True
-        except ConnectionRefusedError:
-            print(f"Connection to {HOST}:{PORT} refused. Is the server running?")
-            return False
         except Exception as e:
-            print(f"Error: {e}")
-            return False
+            print(f"Failed to connect to server: {e}")
+            sys.exit(1)
 
     def send_to_server(self, message):
+        """發送消息到server"""
         try:
             self.socket.sendall(message.encode('utf-8'))
             print(f"Sent to server: {message}")
@@ -63,52 +49,60 @@ class CameraClient:
             print(f"Error sending to server: {e}")
 
     def capture_and_process(self):
+        """處理圖片擷取和模型預測"""
         while self.running:
             if keyboard.is_pressed('enter'):
+                # 儲存當前畫面
                 timestamp = time.strftime("%Y%m%d_%H%M%S")
                 filename = f"capture_{timestamp}.jpg"
                 self.camera.request_save(filename)
                 
+                # 等待圖片保存完成
                 time.sleep(0.5)
                 
+                # 使用模型進行預測
                 prediction = self.classifier.predict(filename)
                 print(f"Model prediction: {prediction}")
-
-                keys = [key for key, value in self.class_mapping.items() if value == prediction]
                 
-                self.send_to_server(f"{keys[0]+1}")
+                # 將結果發送到server
+                self.send_to_server(f"Prediction: {prediction}")
                 
+                # 防止連續觸發
                 time.sleep(0.5)
             time.sleep(0.01)
 
     def start(self):
+        """啟動應用程式"""
         self.running = True
         self.camera.start()
         
-        if not self.connect_to_server():
-            self.stop()
-            return
-        
+        # 啟動處理線程
         process_thread = threading.Thread(target=self.capture_and_process)
         process_thread.daemon = True
         process_thread.start()
         
-        print("Client started. Press Enter to capture and classify, Ctrl+C to exit")
-        
-        try:
-            while self.running:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("\nExiting...")
-            self.stop()
+        print("Application started. Press Enter to capture and classify, Ctrl+C to exit")
 
     def stop(self):
+        """停止應用程式"""
         self.running = False
         self.camera.stop()
         if self.socket:
             self.socket.close()
-        print("Client stopped")
+        print("Application stopped")
+
+def main():
+    app = MainApplication()
+    try:
+        app.start()
+        while True:
+            time.sleep(1)  # 主線程保持運行
+    except KeyboardInterrupt:
+        print("\nShutting down...")
+        app.stop()
+    except Exception as e:
+        print(f"Error: {e}")
+        app.stop()
 
 if __name__ == "__main__":
-    client = CameraClient()
-    client.start()
+    main()

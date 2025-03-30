@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Feed with AI Prediction</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #daff2c; /* 主題色 */
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .video-feed, .captured-image {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .video-feed img, .captured-image img {
+            border: 4px solid #daff2c; /* 主題色邊框 */
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        #prediction, #server-message {
+            font-size: 1.2em;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #daff2c; /* 主題色背景 */
+            color: #333;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 24px;
+            background-color: #daff2c; /* 主題色按鈕 */
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        button:hover {
+            background-color: #c4e626; /* 稍微變暗的主題色 */
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .video-feed img {
+                width: 100%;
+                height: auto;
+            }
+
+            .captured-image img {
+                width: 80%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Camera Feed with AI Prediction</h1>
+        
+        <!-- 即時畫面 -->
+        <div class="video-feed">
+            <h2>Live Feed</h2>
+            <img src="{{ url_for('video_feed') }}" width="640" height="480">
+        </div>
+        
+        <!-- 擷取的影像 -->
+        <div class="captured-image">
+            <h2>Captured Image</h2>
+            <img id="captured" src="" width="320" height="240">
+        </div>
+        
+        <!-- AI 模型預測結果 -->
+        <div id="prediction">Prediction: None yet</div>
+        
+        <!-- Socket server 訊息 -->
+        <div id="server-message">Server Message: None yet</div>
+        
+        <!-- 擷取按鈕 -->
+        <button onclick="captureImage()">Capture and Predict</button>
+    </div>
+
+    <script>
+        // 連接到 WebSocket
+        const socket = io('/');
+
+        // 當接收到預測更新時
+        socket.on('prediction_update', function(data) {
+            updatePrediction(data.prediction);
+        });
+
+        // 當接收到 socket server 訊息時
+        socket.on('server_message', function(data) {
+            document.getElementById('server-message').innerText = `Server Message: ${data.message}`;
+        });
+
+        function captureImage() {
+            fetch('/capture', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    updatePrediction(data.prediction);
+                    updateCapturedImage();
+                });
+        }
+
+        function updatePrediction(prediction) {
+            document.getElementById('prediction').innerText = `Prediction: ${prediction}`;
+        }
+
+        function updateCapturedImage() {
+            fetch('/get_captured_image')
+                .then(response => response.json())
+                .then(data => {
+                    const capturedImg = document.getElementById('captured');
+                    if (data.image_path) {
+                        capturedImg.src = data.image_path + '?' + new Date().getTime(); // 防止快取
+                    }
+                });
+        }
+
+        // 定時更新擷取影像
+        setInterval(updateCapturedImage, 1000);
+    </script>
+</body>
+</html>
