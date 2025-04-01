@@ -12,6 +12,19 @@ Hardware: Stepper motors (NEMA 17) controlled via TB6600 drivers to automate sor
 Software: AI inference integrated with real-time mechanical control for seamless operation. Go through socket module to communicate model result and motor control signals. We also use Flask to build up our simple website to demo live detection result.  
 Frameworks & Tools: Python, Pytorch for AI model training, ONNX for model weights saving and inference, OpenCV for image recognition, Flask for website backend, Socket for communicate Edge device (Resiparry Pi) and System (Windows low performace laptop), and microcontroller-based motor control.  
 
+## Usage Instructions
+
+If you only need to perform recognition and use the socket functionality, run the following command:  
+```bash
+python clients.py
+```
+
+If you need to run web interface, modify the camera index at first and then run the following command:  
+```bash
+python app.py
+```
+
+
 <img src="https://github.com/user-attachments/assets/980f1a74-35c3-4492-a36b-7cb21c487f42" alt="Screenshot 2025-03-31 172206" style="width: 70%;">    
 
 <small>Data flow in our prototype product.</small>  
