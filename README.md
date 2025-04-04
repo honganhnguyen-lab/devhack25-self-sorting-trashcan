@@ -7,10 +7,13 @@ The growing waste crisis inspired us to create an AI-powered automated waste sor
 SORT DESU NE uses AI image recognition to classify waste in real time and directs it into the correct bin using automated mechanical sorting. This reduces human error and ensures proper waste disposal in homes, public spaces, and institutions.
 
 ## How We Built It
-AI Model: Trained on a dataset of various waste categories for accurate classification. Model based on pytorch 2.6.0 with ResNet18 model. Then we save as an ONNX format model to run in a low performance windows devices.  
-Hardware: Stepper motors (NEMA 17) controlled via TB6600 drivers to automate sorting.  
-Software: AI inference integrated with real-time mechanical control for seamless operation. Go through socket module to communicate model result and motor control signals. We also use Flask to build up our simple website to demo live detection result.  
-Frameworks & Tools: Python, Pytorch for AI model training, ONNX for model weights saving and inference, OpenCV for image recognition, Flask for website backend, Socket for communicate Edge device (Resiparry Pi) and System (Windows low performace laptop), and microcontroller-based motor control.  
+(1) AI Model: Trained on a dataset of various waste categories for accurate classification. Model based on pytorch 2.6.0 with ResNet18 model. Then we save as an ONNX format model to run in a low performance windows devices.  
+
+(2) Hardware: Stepper motors (NEMA 17) controlled via TB6600 drivers to automate sorting.  
+
+(3) Software: AI inference integrated with real-time mechanical control for seamless operation. Go through socket module to communicate model result and motor control signals. We also use Flask to build up our simple website to visualize our demo live detection result.  
+
+(4) Frameworks & Tools: Python, Pytorch for AI model training, ONNX for model weights saving and inference, OpenCV for image recognition, Flask for website backend, Socket for communicate Edge device (Resiparry Pi) and System (Windows low performace laptop), and microcontroller-based motor control.  
 
 ## Usage Instructions
 
