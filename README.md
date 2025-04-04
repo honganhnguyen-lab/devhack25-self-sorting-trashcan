@@ -13,7 +13,7 @@ SORT DESU NE uses AI image recognition to classify waste in real time and direct
 
 (3) Software: AI inference integrated with real-time mechanical control for seamless operation. Go through socket module to communicate model result and motor control signals. We also use Flask to build up our simple website to visualize our demo live detection result.  
 
-(4) Frameworks & Tools: Python, Pytorch for AI model training, ONNX for model weights saving and inference, OpenCV for image recognition, Flask for website backend, Socket for communicate Edge device (Resiparry Pi) and System (Windows low performace laptop), and microcontroller-based motor control.  
+(4) Frameworks & Tools: Python, Pytorch for AI model training, ONNX for model weights saving and inference, OpenCV for image recognition, Flask for website backend, Socket for communicate Edge device (Raspberry Pi) and System (Windows low performace laptop), and microcontroller-based motor control.  
 
 ## Usage Instructions
 
